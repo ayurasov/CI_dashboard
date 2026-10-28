@@ -68,7 +68,9 @@ services:
     restart: unless-stopped
     environment:
       TZ: Europe/Moscow
-      HOMEPAGE_ALLOWED_HOSTS: localhost:3080,127.0.0.1:3080
+      # Дашборд открывают и по localhost, и по IP хоста (у WSL IP меняется
+      # между перезагрузками), поэтому ограничение Host не используется.
+      HOMEPAGE_ALLOWED_HOSTS: "*"
       HOMEPAGE_VAR_KUMA_KEY: ${KUMA_API_KEY}
     extra_hosts:
       - "host.docker.internal:host-gateway"
