@@ -1,0 +1,19 @@
+title: Мои продукты · CI/CD
+description: Сервер ayurasov — прод-стенды, пайплайны и мониторинг
+theme: dark
+color: slate
+headerStyle: clean
+
+layout:
+  Продукты:
+    style: row
+    columns: 4
+  CI/CD:
+    style: row
+    columns: 4
+  Мониторинг:
+    style: row
+    columns: 4
+  Инфраструктура:
+    style: row
+    columns: 4

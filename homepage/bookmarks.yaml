@@ -1,0 +1,10 @@
+- Исходники:
+    - GitHub · vacation-planner:
+        icon: github.png
+        href: https://github.com/ayurasov/vacation-planner
+    - Gitea · vacation-planner:
+        icon: gitea.png
+        href: http://localhost:3000/ayurasov/vacation-planner
+    - Gitea · todo-planner:
+        icon: gitea.png
+        href: http://localhost:3000/ayurasov/todo-planner

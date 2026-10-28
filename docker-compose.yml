@@ -1,0 +1,84 @@
+# CI/CD-платформа и дашборды сервера.
+#   Gitea      :3000 — git-сервер + Gitea Actions (CI-пайплайны)
+#   Uptime Kuma:3001 — мониторинг живости продуктов
+#   Homepage   :3080 — главный дашборд, собирает всё вместе
+#   runner          — исполнитель пайплайнов (тест → сборка → deploy → smoke)
+name: ci
+
+services:
+  gitea:
+    image: gitea/gitea:latest
+    container_name: ci-gitea
+    restart: unless-stopped
+    environment:
+      USER_UID: "1000"
+      USER_GID: "1000"
+      TZ: Europe/Moscow
+      GITEA__server__DOMAIN: localhost
+      GITEA__server__ROOT_URL: http://localhost:3000/
+      GITEA__server__SSH_DOMAIN: localhost
+      GITEA__service__DISABLE_REGISTRATION: "true"
+      GITEA__security__INSTALL_LOCK: "true"
+      GITEA__security__SECRET_KEY: ${GITEA_SECRET_KEY}
+      GITEA__security__INTERNAL_TOKEN: ${GITEA_INTERNAL_TOKEN}
+      GITEA__actions__ENABLED: "true"
+      GITEA__log__LEVEL: Info
+    volumes:
+      - gitea-data:/data
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/healthz >/dev/null 2>&1 || curl -fsS http://127.0.0.1:3000/api/healthz >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 30s
+
+  runner:
+    image: gitea/act_runner:latest
+    container_name: ci-runner
+    restart: unless-stopped
+    depends_on:
+      - gitea
+    environment:
+      CONFIG_FILE: /config.yaml
+      TZ: Europe/Moscow
+      GITEA_RUNNER_NAME: server-runner
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./runner/config.yml:/config.yaml:ro
+      - runner-data:/data
+
+  kuma:
+    image: louislam/uptime-kuma:1
+    container_name: ci-kuma
+    restart: unless-stopped
+    environment:
+      TZ: Europe/Moscow
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - kuma-data:/app/data
+    ports:
+      - "3001:3001"
+
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: ci-homepage
+    restart: unless-stopped
+    environment:
+      TZ: Europe/Moscow
+      HOMEPAGE_ALLOWED_HOSTS: localhost:3080,127.0.0.1:3080
+      HOMEPAGE_VAR_KUMA_KEY: ${KUMA_API_KEY}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./homepage:/app/config
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "3080:3000"
+
+volumes:
+  gitea-data:
+  runner-data:
+  kuma-data:

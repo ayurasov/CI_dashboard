@@ -1,0 +1,22 @@
+# Конфигурация act_runner: выполняет пайплайны Gitea Actions на этом сервере.
+# capacity: 1 — один пайплайн за раз (серверу 4 ГБ RAM, чтобы не задушить прод).
+# container.network: ci_default — job-контейнеры в сети Gitea (резолвят gitea:3000).
+log:
+  level: info
+runner:
+  capacity: 1
+  timeout: 30m
+  insecure: false
+  fetch_timeout: 5s
+  fetch_interval: 2s
+  labels:
+    - "ubuntu-latest:docker://node:20-bookworm"
+    - "deploy:docker://alpine:3.21"
+cache:
+  enabled: false
+container:
+  network: "ci_default"
+  privileged: false
+  force_pull: false
+  valid_volumes:
+    - /var/run/docker.sock
