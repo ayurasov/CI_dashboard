@@ -1,0 +1,53 @@
+# ============================================================================
+# Реестр продуктов CI-стенда — единственный источник правды.
+# Из этого файла генерируются: homepage/services.yaml (дашборд)
+# и мониторы Uptime Kuma (scripts/apply.py).
+#
+# Новый продукт: добавить запись здесь → выполнить
+#   docker run --rm --network ci_default -v $PWD:/w python:3.12-alpine \
+#     sh -c "pip -q install pyyaml uptime-kuma-api && python /w/scripts/apply.py"
+# ============================================================================
+
+defaults:
+  check_interval: 60      # период проверок Uptime Kuma, сек
+  retries: 2
+
+# --- Продукты, которые крутятся на сервере ---------------------------------
+products:
+  - name: vacation-planner
+    title: Vacation Planner
+    icon: "✈️"
+    description: Отпуска и графики · nginx :80
+    url: http://localhost:80/                 # ссылка для человека (браузер)
+    ci: http://localhost:3000/ayurasov/vacation-planner/actions
+    compose_project: vacation-planner
+    checks:
+      - name: сайт
+        url: http://host.docker.internal/
+      - name: API
+        url: http://host.docker.internal/api/v1/employees
+        expect: [401]                          # без токня — 401, это норма
+
+  - name: todo-planner
+    title: Todo Planner
+    icon: "✅"
+    description: Задачи · frontend :39665
+    url: http://localhost:39665/
+    ci: http://localhost:3000/ayurasov/todo-planner/actions
+    compose_project: todo-planner
+    checks:
+      - name: сайт
+        url: http://host.docker.internal:39665/
+      - name: API (ready)
+        url: http://host.docker.internal:39665/api/health/ready
+
+# --- Инфраструктура самого CI-стенда ---------------------------------------
+infra:
+  title: Инфраструктура CI
+  checks:
+    - name: Gitea — git и CI
+      url: http://gitea:3000/api/healthz
+    - name: Uptime Kuma
+      url: http://kuma:3001/
+    - name: Homepage — дашборд
+      url: http://homepage:3000/
