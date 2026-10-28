@@ -1,0 +1,20 @@
+- greeting:
+    text_size: 2xl
+    text: Продукты · CI/CD · Мониторинг
+
+- datetime:
+    text_size: xl
+    locale: ru
+    format:
+      dateStyle: long
+      timeStyle: short
+      hourCycle: h23
+
+- resources:
+    label: Сервер (WSL2)
+    cpu: true
+    memory: true
+    disk: /
+    uptime: true
+    expanded: true
+    units: metric

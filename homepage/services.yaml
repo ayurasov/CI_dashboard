@@ -1,0 +1,67 @@
+# Сгенерировано scripts/apply.py из products.yml — не редактировать руками.
+# Изменить состав продуктов: products.yml → выполнить apply.py.
+- Продукты:
+  - Vacation Planner:
+      icon: ✈️
+      href: http://localhost:80/
+      description: Отпуска и графики · nginx :80
+      siteMonitor: http://host.docker.internal/
+      statusStyle: dot
+  - Todo Planner:
+      icon: ✅
+      href: http://localhost:39665/
+      description: Задачи · frontend :39665
+      siteMonitor: http://host.docker.internal:39665/
+      statusStyle: dot
+- CI/CD:
+  - Gitea:
+      icon: gitea.png
+      href: http://localhost:3000/
+      description: Git-сервер и CI (Gitea Actions)
+      siteMonitor: http://gitea:3000/api/healthz
+      statusStyle: dot
+  - Runner:
+      icon: docker.png
+      href: http://localhost:3000/admin/actions/runners
+      description: server-runner (capacity 1)
+      siteMonitor: http://gitea:3000/api/healthz
+      statusStyle: dot
+  - Пайплайн Vacation Planner:
+      icon: ✈️
+      href: http://localhost:3000/ayurasov/vacation-planner/actions
+      description: Тест → сборка → deploy → smoke
+  - Пайплайн Todo Planner:
+      icon: ✅
+      href: http://localhost:3000/ayurasov/todo-planner/actions
+      description: Тест → сборка → deploy → smoke
+- Мониторинг:
+  - Uptime Kuma:
+      icon: uptime-kuma.png
+      href: http://localhost:3001/
+      description: Живость сервисов, время отклика
+      widget:
+        type: uptimekuma
+        url: http://kuma:3001
+        key: '{{HOMEPAGE_VAR_KUMA_KEY}}'
+- Инфраструктура:
+  - Gitea:
+      icon: nginx.png
+      description: Gitea — git и CI
+      siteMonitor: http://gitea:3000/api/healthz
+      statusStyle: dot
+  - Uptime:
+      icon: nginx.png
+      description: Uptime Kuma
+      siteMonitor: http://kuma:3001/
+      statusStyle: dot
+  - Homepage:
+      icon: nginx.png
+      description: Homepage — дашборд
+      siteMonitor: http://homepage:3000/
+      statusStyle: dot
+  - Docker-контейнеры:
+      icon: docker.png
+      description: Все контейнеры сервера, живые/упавшие
+      widget:
+        type: docker
+        server: dockerhost
