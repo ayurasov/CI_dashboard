@@ -1,0 +1,58 @@
+# Шаблон CI-workflow для нового продукта на этом стенде.
+#
+# Подключение:
+#   1. Создать репозиторий в Gitea и запушить код продукта
+#   2. Скопировать этот файл в <репозиторий продукта>/.gitea/workflows/ci.yml
+#   3. Подставить: COMPOSE_PROJECT (имя проекта docker compose на сервере),
+#      PORT (порт стенда), шаги тестов под стек продукта
+#   4. Если для deploy нужен .env — положить его содержимое в секрет репозитория
+#      DEPLOY_ENV (Gitea → Настройки → Actions → Secrets)
+#
+# Метки раннера: ubuntu-latest (node:20) для тестов, deploy (alpine + docker).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: 'Тесты'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # --- шаги тестов под стек продукта, например: ---
+      # - run: npm ci || npm install
+      # - run: npm run test
+      # - run: npm run lint
+
+  deploy:
+    name: 'Deploy прод-стенда + smoke'
+    runs-on: deploy
+    needs: [tests]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Docker CLI и compose
+        run: apk add --no-cache docker-cli docker-cli-compose curl
+      # Раскомментировать, если deploy требует .env из секрета репозитория:
+      # - name: Восстановить .env из секрета
+      #   env:
+      #     DEPLOY_ENV: ${{ secrets.DEPLOY_ENV }}
+      #   run: printf '%s\n' "$DEPLOY_ENV" > .env
+      - name: Сборка и развёртывание
+        run: docker compose -p COMPOSE_PROJECT up -d --build
+      - name: Smoke-проба по HTTP
+        run: |
+          GW=$(ip route | awk '/default/ {print $3}')
+          for i in $(seq 1 60); do
+            CODE=$(curl -s -o /dev/null -w '%{http_code}' http://$GW:PORT/ 2>/dev/null)
+            [ "$CODE" = "200" ] && break
+            sleep 5
+          done
+          test "$CODE" = 200 || { echo 'Стенд не поднялся за 5 минут'; exit 1; }
+          echo 'Стенд отвечает 200 — deploy прошёл'
