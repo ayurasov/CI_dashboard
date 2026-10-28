@@ -1,0 +1,8 @@
+# Секреты и доступы
+.env
+credentials.txt
+runner/.registration-token
+
+# Динамические артефакты
+__pycache__/
+*.pyc
